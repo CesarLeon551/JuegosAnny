@@ -3,29 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pasapalabra Harry Potter</title>
+    <title>Juego de Pares - Harry Potter</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="game-container">
-        <h1>Pasapalabra Harry Potter</h1>
-        <div id="circle"></div>
-        <div id="question-container">
-            <p id="question"></p>
-            <input type="text" id="answer" placeholder="Escribe tu respuesta...">
-            <button id="submit-answer">Responder</button>
-        </div>
-        <div id="score-container">
-            <p>Aciertos: <span id="correct-answers">0</span></p>
-            <p>Errores: <span id="wrong-answers">0</span></p>
-        </div>
-        <div id="result-container" style="display: none;">
-            <h2>Resultados</h2>
-            <p>Porcentaje de acierto: <span id="accuracy"></span>%</p>
-            <h3>Respuestas Correctas:</h3>
-            <ul id="correct-list"></ul>
-            <h3>Respuestas Incorrectas:</h3>
-            <ul id="wrong-list"></ul>
+    <h1>Juego de Pares - Harry Potter</h1>
+    <div id="start-screen">
+        <input type="text" id="player-name" placeholder="Ingresa tu nombre">
+        <select id="house-emblem">
+            <option value="Gryffindor">Gryffindor</option>
+            <option value="Hufflepuff">Hufflepuff</option>
+            <option value="Ravenclaw">Ravenclaw</option>
+            <option value="Slytherin">Slytherin</option>
+        </select>
+        <button id="start-button">Comenzar</button>
+    </div>
+    <div class="game-board" id="game-board" style="display: none;">
+        <!-- Las cartas se generarán aquí -->
+    </div>
+    <div class="popup" id="popup">
+        <div class="wands" id="wands"></div>
+        <div class="popup-content">
+            <h2>¡Juego Completo!</h2>
+            <p id="congrats-message"></p>
+            <button id="close-button">Cerrar</button>
         </div>
     </div>
     <script src="script.js"></script>
