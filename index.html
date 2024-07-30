@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta de Hogwarts</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Ruleta de Hogwarts</h1>
+    <div id="start-screen">
+        <input type="text" id="player-name" placeholder="Ingresa tu nombre">
+        <select id="house-emblem">
+            <option value="Gryffindor">Gryffindor</option>
+            <option value="Hufflepuff">Hufflepuff</option>
+            <option value="Ravenclaw">Ravenclaw</option>
+            <option value="Slytherin">Slytherin</option>
+        </select>
+        <button id="start-button">Comenzar</button>
+    </div>
+    <div id="ruleta-container" style="display: none; position: relative;">
+        <div id="ruleta">
+            <!-- Secciones generadas dinámicamente -->
+        </div>
+        <div id="pointer"></div>
+        <button id="spin-button">Girar</button>
+    </div>
+    <p id="result-message" style="display: none;"></p>
+    <script src="script.js"></script>
+</body>
+</html>

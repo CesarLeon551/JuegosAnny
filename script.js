@@ -1,144 +1,65 @@
-const characters = [
-    "harry", "hermione", "ron", "dumbledore", "snape", "voldemort", "draco", "luna"
-];
+document.getElementById("start-button").addEventListener("click", startGame);
+document.getElementById("spin-button").addEventListener("click", spin);
 
-const phrases = [
-    "La felicidad se puede hallar incluso en los más oscuros momentos, si somos capaces de usar bien la luz. - Albus Dumbledore",
-    "No es bueno dejarse arrastrar por los sueños y olvidarse de vivir. - Albus Dumbledore",
-    "La varita elige al mago, señor Potter. - Ollivander",
-    "Las consecuencias de nuestros actos son siempre tan complicadas, tan diversas, que predecir el futuro es realmente muy difícil. - Albus Dumbledore",
-    "No necesitamos magia para transformar nuestro mundo; llevamos todo el poder que necesitamos dentro de nosotros mismos. - Albus Dumbledore"
-];
+const colorPoints = {
+    red: 1000,
+    green: 2000,
+    purple: 3000,
+    black: 4000,
+    blue: 5000,
+    brown: 6000,
+    pink: 7000,
+    white: 8000,
+    gray: 9000
+};
 
-const gameBoard = document.getElementById("game-board");
-const popup = document.getElementById("popup");
-const heartsContainer = document.getElementById("hearts");
-const closeButton = document.getElementById("close-button");
-const startScreen = document.getElementById("start-screen");
-const startButton = document.getElementById("start-button");
-const playerNameInput = document.getElementById("player-name");
-const houseEmblemSelect = document.getElementById("house-emblem");
-const congratsMessage = document.getElementById("congrats-message");
-
-let cardArray = [...characters, ...characters];
-cardArray.sort(() => 0.5 - Math.random());
-
-let hasFlippedCard = false;
-let lockBoard = false;
-let firstCard, secondCard;
-let matchedPairs = 0;
-
-startButton.addEventListener("click", startGame);
+const colors = Object.keys(colorPoints);
+const sections = colors.length;
+const segmentAngle = 360 / sections;
 
 function startGame() {
-    const playerName = playerNameInput.value;
-    const houseEmblem = houseEmblemSelect.value;
+    const playerName = document.getElementById("player-name").value;
+    const houseEmblem = document.getElementById("house-emblem").value;
 
     if (playerName === "") {
         alert("Por favor, ingresa tu nombre.");
         return;
     }
 
-    startScreen.style.display = "none";
-    gameBoard.style.display = "grid";
-    generateBoard();
-
-    alert(`¡Bienvenido/a ${playerName} de ${houseEmblem}!`);
-}
-
-function generateBoard() {
-    cardArray.forEach(character => createCard(character));
-}
-
-function createCard(character) {
-    const card = document.createElement("div");
-    card.classList.add("card");
-    card.innerHTML = `
-        <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back" style="background-image: url('images/${character}.jpg');"></div>
-        </div>
-    `;
-    card.addEventListener("click", flipCard);
-    gameBoard.appendChild(card);
-}
-
-function flipCard() {
-    if (lockBoard) return;
-    if (this === firstCard) return;
-
-    this.classList.add("flipped");
-
-    if (!hasFlippedCard) {
-        hasFlippedCard = true;
-        firstCard = this;
+    if (localStorage.getItem(playerName)) {
+        alert("Ya has girado la ruleta.");
         return;
     }
 
-    secondCard = this;
-    checkForMatch();
+    document.getElementById("start-screen").style.display = "none";
+    document.getElementById("ruleta-container").style.display = "flex";
 }
 
-function checkForMatch() {
-    if (firstCard.innerHTML === secondCard.innerHTML) {
-        disableCards();
-        return;
-    }
-    unflipCards();
+function spin() {
+    const spinButton = document.getElementById("spin-button");
+    const playerName = document.getElementById("player-name").value;
+
+    spinButton.disabled = true;
+    const ruleta = document.getElementById("ruleta");
+    const randomDegree = Math.floor(Math.random() * 360) + 3600; // Gira al menos 10 vueltas completas
+
+    ruleta.style.transition = "transform 4s ease-out";
+    ruleta.style.transform = `rotate(${randomDegree}deg)`;
+
+    ruleta.addEventListener("transitionend", () => {
+        const resultMessage = document.getElementById("result-message");
+        const houseEmblem = document.getElementById("house-emblem").value;
+        
+        // Calcula el ángulo en el que se detuvo la rueda
+        const finalDegree = randomDegree % 360;
+        // Calcula el índice de la sección basada en el ángulo final
+        const sectionIndex = Math.floor((360 - finalDegree) / segmentAngle);
+        const resultColor = colors[sectionIndex];
+        const resultPoints = colorPoints[resultColor];
+
+        resultMessage.textContent = `¡Felicidades! Has ganado ${resultPoints} puntos, ${playerName} de ${houseEmblem}. El color es ${resultColor}.`;
+        resultMessage.style.display = "block";
+
+        localStorage.setItem(playerName, true);
+    }, { once: true });
 }
-
-function disableCards() {
-    firstCard.removeEventListener("click", flipCard);
-    secondCard.removeEventListener("click", flipCard);
-    matchedPairs++;
-
-    if (matchedPairs === characters.length) {
-        setTimeout(() => {
-            showPopup();
-        }, 500);
-    }
-
-    resetBoard();
-}
-
-function unflipCards() {
-    lockBoard = true;
-
-    setTimeout(() => {
-        firstCard.classList.remove("flipped");
-        secondCard.classList.remove("flipped");
-
-        resetBoard();
-    }, 1500);
-}
-
-function resetBoard() {
-    [hasFlippedCard, lockBoard] = [false, false];
-    [firstCard, secondCard] = [null, null];
-}
-
-function showPopup() {
-    const playerName = playerNameInput.value;
-    const houseEmblem = houseEmblemSelect.value;
-    const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-    const message = `¡Felicidades ${playerName} de ${houseEmblem}! Has completado el juego con 3500 puntos. "${randomPhrase}"`;
-
-    congratsMessage.textContent = message;
-    popup.classList.add("show");
-    generateHearts();
-}
-
-function generateHearts() {
-    for (let i = 0; i < 30; i++) {
-        const heart = document.createElement("div");
-        heart.classList.add("heart");
-        heart.style.left = `${Math.random() * 100}%`;
-        heart.style.animationDelay = `${Math.random() * 2}s`;
-        heart.style.animationDuration = `${2 + Math.random() * 2}s`;
-        heartsContainer.appendChild(heart);
-    }
-}
-
-closeButton.addEventListener("click", () => {
-    popup.classList.remove("show");
-});
