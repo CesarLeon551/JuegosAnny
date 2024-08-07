@@ -2,15 +2,15 @@ document.getElementById("start-button").addEventListener("click", startGame);
 document.getElementById("spin-button").addEventListener("click", spin);
 
 const colorPoints = {
-    red: 1000,
+    red: "Reto",
     green: 2000,
     purple: 3000,
     black: 4000,
     blue: 5000,
-    brown: 6000,
-    pink: 7000,
-    white: 8000,
-    gray: 9000
+    brown: 4000,
+    pink: 3000,
+    white: "Verdad",
+    gray: "Verdad",
 };
 
 const colors = Object.keys(colorPoints);
