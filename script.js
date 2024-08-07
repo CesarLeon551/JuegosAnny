@@ -5,7 +5,7 @@ const colorPoints = {
     red: "Reto",
     green: 2000,
     purple: 3000,
-    black: 4000,
+    black: "Reto",
     blue: 5000,
     brown: 4000,
     pink: 3000,
