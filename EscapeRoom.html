@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room - Harry Potter y Halloween</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        .hidden { display: none; }
+        .ingredients, .runes, .questions { margin-top: 20px; }
+        .ingredient, .rune, .question { display: inline-block; margin: 10px; padding: 10px; cursor: pointer; background-color: #333; border-radius: 5px; }
+        input[type="text"] { padding: 10px; margin: 10px; width: 200px; }
+        button { padding: 10px; background-color: #555; color: #fff; border: none; cursor: pointer; }
+        button:hover { background-color: #777; }
+    </style>
+</head>
+<body>
+
+    <h1>Escape Room - Harry Potter y Halloween</h1>
+
+    <!-- Registro de Nombre y Casa -->
+    <div id="registro">
+        <h2>Registro de Jugador</h2>
+        <p>Ingresa tu nombre y selecciona tu casa de Hogwarts para comenzar.</p>
+        <input type="text" id="nombre" placeholder="Tu nombre">
+        <select id="casa">
+            <option value="Gryffindor">Gryffindor</option>
+            <option value="Slytherin">Slytherin</option>
+            <option value="Hufflepuff">Hufflepuff</option>
+            <option value="Ravenclaw">Ravenclaw</option>
+        </select>
+        <button onclick="registrarJugador()">Iniciar Juego</button>
+    </div>
+
+    <!-- Reto 1: La Poción Multijugos -->
+    <div id="reto1" class="hidden">
+        <h2>Reto 1: La Poción Multijugos</h2>
+        <p>Selecciona los tres ingredientes correctos para preparar la Poción Multijugos. Si fallas, perderás la partida.</p>
+        <div id="ingredientsList" class="ingredients"></div>
+    </div>
+
+    <!-- Reto 2: Runas de Nox y Lumos -->
+    <div id="reto2" class="hidden">
+        <h2>Reto 2: Runas de Nox y Lumos</h2>
+        <p>Elige la runa correcta para encender (Lumos) o apagar (Nox) la luz. Tienes <span id="timer">20</span> segundos y solo una oportunidad.</p>
+        <div class="runes">
+            <div class="rune" id="nox" onclick="chooseRune('nox')">ᚾ</div>
+            <div class="rune" id="lumos" onclick="chooseRune('lumos')">ᛚ</div>
+        </div>
+    </div>
+
+    <!-- Reto 3: Preguntas de Hechizos de Magia Oscura -->
+    <div id="reto3" class="hidden">
+        <h2>Reto 3: Preguntas sobre Hechizos de Magia Oscura</h2>
+        <p>Responde correctamente todas las preguntas sobre hechizos de magia oscura. Si fallas, perderás la partida.</p>
+        <div id="questionsList" class="questions"></div>
+    </div>
+
+    <script>
+        // Variables para Reto 1
+        let selectedIngredients = [];
+        const allIngredients = ['Sanguijuelas', 'Crisopos', 'Polvo de cuerno de bicornio', 'Piedra Lunar', 'Amortencia', 'Pluma de Fenix', 'Tintura de Tomillo', 'Huevo de Ashwinder'];
+        const correctIngredients = ['Sanguijuelas', 'Crisopos', 'Polvo de cuerno de bicornio']; // Poción Multijugos
+
+        // Función para registrar al jugador
+        function registrarJugador() {
+            let nombre = document.getElementById('nombre').value.trim().toLowerCase(); // Convertir a minúsculas
+            const casa = document.getElementById('casa').value.toLowerCase(); // Convertir a minúsculas también
+            
+            if (nombre === "") {
+                alert("Por favor, ingresa un nombre.");
+                return;
+            }
+
+            // Verificar si ya existe el nombre en la misma casa
+            let jugadores = JSON.parse(localStorage.getItem('jugadores')) || {};
+
+            if (jugadores[nombre]) {
+                if (jugadores[nombre].toLowerCase() === casa) {
+                    alert(`El jugador ${nombre} ya está registrado con la casa ${jugadores[nombre]}. No puedes registrarte de nuevo.`);
+                } else {
+                    alert(`El nombre ${nombre} ya está registrado, pero con otra casa (${jugadores[nombre]}). No puedes cambiar de casa.`);
+                }
+                return;
+            }
+
+            // Registrar nombre y casa en localStorage
+            jugadores[nombre] = casa;
+            localStorage.setItem('jugadores', JSON.stringify(jugadores));
+
+            alert(`Bienvenido, ${nombre.charAt(0).toUpperCase() + nombre.slice(1)} de ${casa.charAt(0).toUpperCase() + casa.slice(1)}. ¡Que comience el juego!`);
+
+            // Iniciar el juego y ocultar el registro
+            document.getElementById('registro').classList.add('hidden');
+            document.getElementById('reto1').classList.remove('hidden');
+            initializePotionChallenge();
+        }
+
+        function initializePotionChallenge() {
+            let randomIngredients = allIngredients.sort(() => 0.5 - Math.random()).slice(0, 5);
+            let ingredientsToShow = [...correctIngredients, ...randomIngredients].sort(() => 0.5 - Math.random());
+            
+            const ingredientsList = document.getElementById('ingredientsList');
+            ingredientsList.innerHTML = '';
+            ingredientsToShow.forEach(ingredient => {
+                ingredientsList.innerHTML += `<div class="ingredient" id="${ingredient}" onclick="chooseIngredient('${ingredient}')">${ingredient}</div>`;
+            });
+        }
+
+        function chooseIngredient(ingredient) {
+            if (selectedIngredients.includes(ingredient)) {
+                alert('Este ingrediente ya ha sido seleccionado.');
+            } else {
+                selectedIngredients.push(ingredient);
+                alert(`Has seleccionado ${ingredient}.`);
+            }
+
+            if (selectedIngredients.length === 3) {
+                checkIngredients();
+            }
+        }
+
+        function checkIngredients() {
+            // Comprobar si los tres ingredientes seleccionados son correctos
+            if (correctIngredients.every(ing => selectedIngredients.includes(ing))) {
+                alert('¡Has preparado la Poción Multijugos correctamente!');
+                document.getElementById('reto1').classList.add('hidden');
+                document.getElementById('reto2').classList.remove('hidden');
+                initializeRandomLightState(); // Inicializar la luz al azar en el reto 2
+                startTimer(); // Iniciar el temporizador
+            } else {
+                alert('Has fallado al preparar la poción. ¡Has perdido la partida!');
+                loseGame();
+            }
+        }
+
+        // Variables para Reto 2
+        let lightOn = false;
+        let timerInterval;
+        let timer = 20;
+        let opportunityTaken = false;
+
+        function initializeRandomLightState() {
+            lightOn = Math.random() >= 0.5;
+            updateLightEffect();
+        }
+
+        function updateLightEffect() {
+            if (lightOn) {
+                document.body.style.backgroundColor = '#f9f9f9';
+                document.body.style.color = '#000';
+            } else {
+                document.body.style.backgroundColor = '#000';
+                document.body.style.color = '#fff';
+            }
+        }
+
+        function chooseRune(rune) {
+            if (opportunityTaken) return;
+
+            opportunityTaken = true;
+            if ((rune === 'lumos' && !lightOn) || (rune === 'nox' && lightOn)) {
+                alert(rune === 'lumos' ? '¡Lumos! La luz se ha encendido.' : '¡Nox! La luz se ha apagado.');
+                clearInterval(timerInterval);
+                document.getElementById('reto2').classList.add('hidden');
+                resetBackground(); // Restablecer fondo antes de la siguiente prueba
+                document.getElementById('reto3').classList.remove('hidden');
+                initializeQuestionRound();
+            } else {
+                loseGame();
+            }
+            updateLightEffect();
+        }
+
+        function resetBackground() {
+            document.body.style.backgroundColor = '#000';
+            document.body.style.color = '#fff';
+            opportunityTaken = false; // Permitir nueva oportunidad
+        }
+
+        function startTimer() {
+            timer = 20;
+            document.getElementById('timer').textContent = timer;
+            timerInterval = setInterval(() => {
+                timer--;
+                document.getElementById('timer').textContent = timer;
+
+                if (timer === 0) {
+                    clearInterval(timerInterval);
+                    alert('¡El tiempo ha terminado! Has perdido la partida.');
+                    loseGame();
+                }
+            }, 1000);
+        }
+
+        // Variables para Reto 3
+	resetBackground();
+        const questions = [
+            { question: "¿Qué hace el hechizo Avada Kedavra?", answer: "Matar" },
+            { question: "¿Qué invoca el hechizo Expecto Patronum?", answer: "Patronus" },
+            { question: "¿Qué conjura el hechizo Serpensortia?", answer: "Serpiente" },
+            { question: "¿Qué causa el hechizo Cruciatus?", answer: "Dolor" },
+            { question: "¿Qué hace el hechizo Imperius?", answer: "Control mental" },
+            { question: "¿Qué destruye el hechizo Fiendfyre?", answer: "Objetos y seres vivos" },
+            { question: "¿Qué efecto tiene el hechizo Expelliarmus?", answer: "Desarmar" },
+            { question: "¿Qué invoca el hechizo Accio?", answer: "Objeto" },
+            { question: "¿Qué hace el hechizo Sectumsempra?", answer: "Cortar" },
+            { question: "¿Qué crea el hechizo Protego?", answer: "Escudo" }
+        ];
+        let currentQuestionIndex = 0;
+
+        function initializeQuestionRound() {
+            currentQuestionIndex = 0;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const questionElement = document.getElementById('questionsList');
+            questionElement.innerHTML = '';
+
+            if (currentQuestionIndex < questions.length) {
+                questionElement.innerHTML = `<p>${questions[currentQuestionIndex].question}</p>
+                    <input type="text" id="respuesta" placeholder="Tu respuesta">
+                    <button onclick="checkAnswer()">Responder</button>`;
+            } else {
+                finishGame(); // Finaliza el juego si no hay más preguntas
+            }
+        }
+
+        function checkAnswer() {
+            const respuesta = document.getElementById('respuesta').value.trim().toLowerCase();
+
+            if (respuesta === questions[currentQuestionIndex].answer) {
+                alert('¡Respuesta correcta!');
+                currentQuestionIndex++;
+                showQuestion();
+            } else {
+                alert('Respuesta incorrecta. ¡Has perdido la partida!');
+                loseGame();
+            }
+        }
+
+        function finishGame() {
+            alert('¡Has respondido todas las preguntas correctamente! Has escapado del cuarto.');
+            showDumbledoreMessage();
+	    resetGame();
+        }
+
+        function loseGame() {
+            alert('¡Has perdido! Intenta de nuevo.');
+	    showDumbledoreMessageLose();
+            resetGame();
+        }
+
+        function resetGame() {
+            // Reinicia todos los elementos del juego
+            document.getElementById('reto1').classList.add('hidden');
+            document.getElementById('reto2').classList.add('hidden');
+            document.getElementById('reto3').classList.add('hidden');
+            document.getElementById('registro').classList.remove('hidden');
+            selectedIngredients = [];
+            clearInterval(timerInterval);
+        }
+
+        function showDumbledoreMessage() {
+            const casa = document.getElementById('casa').value.toLowerCase();
+            let mensaje = '';
+
+            switch (casa) {
+                case 'gryffindor':
+                    mensaje = "Mis queridísimos alumnos, es con gran orgullo que veo cómo han superado esta difícil prueba. Al igual que en los momentos más oscuros de nuestra historia, el coraje, la astucia y, lo que es más importante, el trabajo en equipo, han sido sus mayores aliados. Recuerden siempre, que no es el poder ni la fuerza lo que define nuestra grandeza, sino la forma en que enfrentamos lo imposible. Hoy, han demostrado ser dignos de todo lo que Hogwarts representa. ¡Mis más sinceras felicitaciones por su escape triunfal!";
+                    break;
+                case 'slytherin':
+                    mensaje = "Mis queridísimos alumnos, es con gran orgullo que veo cómo han superado esta difícil prueba. Al igual que en los momentos más oscuros de nuestra historia, el coraje, la astucia y, lo que es más importante, el trabajo en equipo, han sido sus mayores aliados. Recuerden siempre, que no es el poder ni la fuerza lo que define nuestra grandeza, sino la forma en que enfrentamos lo imposible. Hoy, han demostrado ser dignos de todo lo que Hogwarts representa. ¡Mis más sinceras felicitaciones por su escape triunfal!";
+                    break;
+                case 'hufflepuff':
+                    mensaje = "Mis queridísimos alumnos, es con gran orgullo que veo cómo han superado esta difícil prueba. Al igual que en los momentos más oscuros de nuestra historia, el coraje, la astucia y, lo que es más importante, el trabajo en equipo, han sido sus mayores aliados. Recuerden siempre, que no es el poder ni la fuerza lo que define nuestra grandeza, sino la forma en que enfrentamos lo imposible. Hoy, han demostrado ser dignos de todo lo que Hogwarts representa. ¡Mis más sinceras felicitaciones por su escape triunfal!";
+                    break;
+                case 'ravenclaw':
+                    mensaje = "Mis queridísimos alumnos, es con gran orgullo que veo cómo han superado esta difícil prueba. Al igual que en los momentos más oscuros de nuestra historia, el coraje, la astucia y, lo que es más importante, el trabajo en equipo, han sido sus mayores aliados. Recuerden siempre, que no es el poder ni la fuerza lo que define nuestra grandeza, sino la forma en que enfrentamos lo imposible. Hoy, han demostrado ser dignos de todo lo que Hogwarts representa. ¡Mis más sinceras felicitaciones por su escape triunfal!";
+                    break;
+            }
+
+            alert(`Dumbledore dice: "${mensaje}"`);
+        }
+
+	//Mensaje si pierden
+	function showDumbledoreMessageLose() {
+            const casa = document.getElementById('casa').value.toLowerCase();
+            let mensaje = '';
+
+            switch (casa) {
+                case 'gryffindor':
+                    mensaje = "Valor, eso nunca les ha faltado. Pero incluso los más valientes a veces caen, no por falta de coraje, sino por no medir correctamente el riesgo. No se desanimen, pues la verdadera grandeza no radica en nunca caer, sino en levantarse con más fuerza después de cada derrota. Gryffindor estaría orgulloso de su esfuerzo.";
+                    break;
+                case 'slytherin':
+                    mensaje = "Ah, mis astutos amigos de Slytherin, siempre buscando una ventaja. Pero incluso las mentes más astutas pueden verse atrapadas. Hoy no fue su día, pero recuerden que un verdadero estratega aprende más de sus fracasos que de sus victorias. Regresarán más fuertes, y cuando lo hagan, su éxito será indudable.";
+                    break;
+                case 'hufflepuff':
+                    mensaje = "La lealtad y el trabajo duro son las cualidades más subestimadas y, sin embargo, las más valiosas. Hoy han enfrentado un desafío que parecía insuperable, pero su dedicación y colaboración no pasaron desapercibidas. Aunque no lograron el objetivo, sepan que el espíritu de Hufflepuff está más vivo que nunca en cada uno de ustedes. Con el tiempo, lo que hoy parece una derrota, se convertirá en una victoria duradera.";
+                    break;
+                case 'ravenclaw':
+                    mensaje = "Ah, la mente afilada es un don precioso. Sin embargo, hasta los más sabios enfrentan fracasos. No teman, mis queridos alumnos, porque es en los errores donde reside la oportunidad de aprender. Hoy no han logrado descifrar el enigma, pero tengan por seguro que el conocimiento que han adquirido los llevará más lejos la próxima vez.";
+                    break;
+            }
+
+            alert(`Dumbledore dice: "${mensaje}"`);
+        }
+    </script>
+</body>
+</html>
